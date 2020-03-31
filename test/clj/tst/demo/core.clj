@@ -114,7 +114,7 @@
       '(clojure.core/apply tst.demo.core/m2c-fn '[one two]))
     (is= (m2c hi bye) "hi, bye")))
 
-(do
+(comment  ; do
   (sep :m2d-def)
   (defn m2d-fn
     [s1 s2]
@@ -142,6 +142,36 @@
     (is= (spyx (m2d-impl '[one two]))
       '(tst.demo.core/m2d-fn (quote one) (quote two)))
     (is= (m2d hi bye) "hi, bye")))
+
+(comment  ; do
+  (sep :m9-def)
+  (defn m9-fn
+    [[pat & vals]]
+    (spyx :m9-fn [pat vals])
+    (str/join
+      (interpose ", "
+        (for [val vals]
+          (str (sym->str pat) "+" (sym->str val))))))
+
+  (defn m9-impl
+    [args] ; ***** cannot destructure here ****
+    (assert (every? symbol? args))
+    (let [[pat & vals] args] ; destructure here works normally
+      (spyx :m9-impl [pat vals])
+      `(m9-fn (quote ~args))))
+
+  (defmacro m9
+    "Convert a symbol to a string"
+    [& args]
+    (spyx :m9 args)
+    (assert (every? symbol? args))
+    (m9-impl args))
+
+  (dotest
+    (sep :m9-run)
+    (is= (m9-impl '[a b c d])
+      '(tst.demo.core/m9-fn (quote [a b c d])))
+    (is= (m9 anda one two three) "anda+one, anda+two, anda+three")))
 
 (comment
   (sep)
