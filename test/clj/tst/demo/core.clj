@@ -218,7 +218,7 @@
     (m9a-impl (quote [a b c d])) => (tst.demo.core/m9a-fn (quote a) (quote (b c d)))
     :m9a-fn [pat vals] => [anda (one two three)] "
 
-(do       ; comment  ; do
+(do
   ; (sep :m9b-def)
   (defn m9b-fn
     [args]
@@ -258,28 +258,4 @@
     (m9b-impl (quote [a b c d])) => (tst.demo.core/m9b-fn (quote [a b c d]))
     :m9b-fn [pat vals] => [anda (one two three)] "
 
-(comment
-  (sep)
 
-  (defn mb-fn
-  [a b]
-  (str/join (interpose ", " (mapv sym->str [a b]))))
-
-(defn mb-impl
-  [args]
-  `(let [[a# b#] ~args]
-     (mb-fn a# b#)))
-
-(defmacro mb
-  "Convert a symbol to a string"
-  [& args]
-  (spyx args)
-  (mb-impl args))
-
-(dotest
-  (println \newline :----------------------------------------------------------------------------- )
-  (spyx-pretty (mb-impl '[one two]))
-  ;  (spyx (mb one two))
-  )
-
-  )
