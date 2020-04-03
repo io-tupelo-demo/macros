@@ -190,17 +190,17 @@
 (do
   ; (sep :m9a-def)
   (defn m9a-fn
-    [pat vals]
-    ; (spyx :m9a-fn [pat vals])
+    [preface words]
+    ; (spyx :m9a-fn [preface words])
     (str/join
       (interpose ", "
-        (for [val vals]
-          (str (sym->str pat) "+" (sym->str val))))))
+        (for [val words]
+          (str (sym->str preface) "+" (sym->str val))))))
 
   (defn m9a-impl
-    [[pat & vals]]
-    ; (spyx :m9a-impl [pat vals])
-    `(m9a-fn (quote ~pat) (quote ~vals)))
+    [[preface & words]]
+    ; (spyx :m9a-impl [preface words])
+    `(m9a-fn (quote ~preface) (quote ~words)))
 
   (defmacro m9a
     "Convert a symbol to a string"
@@ -217,31 +217,31 @@
 "
 :m9a-def -----------------------------------------------------------------------------
 :m9a args => (anda one two three)
-:m9a-impl [pat vals] => [anda (one two three)]
+:m9a-impl [preface words] => [anda (one two three)]
 
 :m9a-run -----------------------------------------------------------------------------
-:m9a-impl [pat vals] => [a (b c d)]
+:m9a-impl [preface words] => [a (b c d)]
 (m9a-impl (quote [a b c d])) => (tst.demo.core/m9a-fn (quote a) (quote (b c d)))
-:m9a-fn [pat vals] => [anda (one two three)] "
+:m9a-fn [preface words] => [anda (one two three)] "
 
 ;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m9b-def)
   (defn m9b-fn
-    [args]
-    (let [[pat & vals] args]
-      ; (spyx :m9b-fn [pat vals])
-      (str/join
-        (interpose ", "
-          (for [val vals]
-            (str (sym->str pat) "+" (sym->str val)))))))
+    [preface words]
+    ; (spyx :m9b-fn [preface words])
+    (str/join
+      (interpose ", "
+        (for [val words]
+          (str (sym->str preface) "+" (sym->str val))))))
 
   (defn m9b-impl
     [args]
+    ; (spyx :m9b-impl args)
     (assert (every? symbol? args))
-    (let [[pat & vals] args]
-      ; (spyx :m9b-impl [pat vals args])
-      `(m9b-fn (quote ~args))))
+    (let [[preface & words] args]
+      ; (spyx :m9b-impl [preface words])
+      `(m9b-fn (quote ~preface) (quote ~words))))
 
   (defmacro m9b
     "Convert a symbol to a string"
@@ -252,41 +252,39 @@
 
   (dotest
     ; (sep :m9b-run)
-    (is= (m9b-impl '[a b c d])
-      '(tst.demo.core/m9b-fn (quote [a b c d])))
+    (is= (m9b-impl (quote [a b c d]))
+      '(tst.demo.core/m9b-fn (quote a) (quote [b c d])))
+
     (is= (m9b anda one two three) "anda+one, anda+two, anda+three")))
 "
 :m9b-def -----------------------------------------------------------------------------
 :m9b args => (anda one two three)
-:m9b-impl [pat vals args] => [anda (one two three) (anda one two three)]
+:m9b-impl args => (anda one two three)
+:m9b-impl [preface words] => [anda (one two three)]
 
 :m9b-run -----------------------------------------------------------------------------
-:m9b-impl [pat vals args] => [a (b c d) [a b c d]]
-(m9b-impl (quote [a b c d])) => (tst.demo.core/m9b-fn (quote [a b c d]))
-:m9b-fn [pat vals] => [anda (one two three)] "
-
-
-; o  ; #todo ***** causes bad compiler error *****
-
+:m9b-impl args => [a b c d]
+:m9b-impl [preface words] => [a (b c d)]
+:m9b-fn [preface words] => [anda (one two three)] "
 
 ;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m9c-def)
   (defn m9c-fn
-    [pat vals]
-    ; (spyx :m9c-fn [pat vals])
-    (str/join
-      (interpose ", "
-        (for [val vals]
-          (str (sym->str pat) "+" (sym->str val))))))
+    [args]
+    (let [[preface & words] args]
+      ; (spyx :m9c-fn [preface words])
+      (str/join
+        (interpose ", "
+          (for [val words]
+            (str (sym->str preface) "+" (sym->str val)))))))
 
   (defn m9c-impl
     [args]
-    ; (spyx :m9c-impl args)
     (assert (every? symbol? args))
-    (let [[pat & vals] args]
-      ; (spyx :m9c-impl [pat vals])
-      `(m9c-fn (quote ~pat) (quote ~vals))))
+    (let [[preface & words] args]
+      ; (spyx :m9c-impl [preface words args])
+      `(m9c-fn (quote ~args))))
 
   (defmacro m9c
     "Convert a symbol to a string"
@@ -297,17 +295,20 @@
 
   (dotest
     ; (sep :m9c-run)
-    (is= (m9c-impl (quote [a b c d]))
-      '(tst.demo.core/m9c-fn (quote a) (quote [b c d])))
-
+    (is= (m9c-impl '[a b c d])
+      '(tst.demo.core/m9c-fn (quote [a b c d])))
     (is= (m9c anda one two three) "anda+one, anda+two, anda+three")))
 "
 :m9c-def -----------------------------------------------------------------------------
 :m9c args => (anda one two three)
-:m9c-impl args => (anda one two three)
-:m9c-impl [pat vals] => [anda (one two three)]
+:m9c-impl [preface words args] => [anda (one two three) (anda one two three)]
 
 :m9c-run -----------------------------------------------------------------------------
-:m9c-impl args => [a b c d]
-:m9c-impl [pat vals] => [a (b c d)]
-:m9c-fn [pat vals] => [anda (one two three)] "
+:m9c-impl [preface words args] => [a (b c d) [a b c d]]
+(m9c-impl (quote [a b c d])) => (tst.demo.core/m9c-fn (quote [a b c d]))
+:m9c-fn [preface words] => [anda (one two three)] "
+
+
+; o  ; #todo ***** causes bad compiler error *****
+
+
