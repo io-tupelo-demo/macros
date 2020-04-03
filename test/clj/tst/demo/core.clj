@@ -2,14 +2,13 @@
   (:use tupelo.core
         tupelo.test)
   (:require
-    [clojure.string :as str]
-    )
-  (:import [clojure.java.api Clojure]
-           [com.sun.tools.javac.util Convert]))
+    [clojure.string :as str])
+  (:import [clojure.java.api Clojure]))
 
 (defn sep [& args]
   (newline) (println (first-or-nil args) "-----------------------------------------------------------------------------"))
 
+;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m1-def)
   (defn m1-fn
@@ -35,6 +34,7 @@
     (is= (m1 bye) "bye")))
 
 
+;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m2-def)
   (defn m2-fn
@@ -62,17 +62,18 @@
       '(tst.demo.core/m2-fn (quote one) (quote two)))
     (is= (m2 hi bye)
       "hi, bye")))
-    "
-    :m2-def -----------------------------------------------------------------------------
-    :m2 [s1 s2] => [hi bye]
-    :m2-impl [s1 s2] => [hi bye]
+"
+:m2-def -----------------------------------------------------------------------------
+:m2 [s1 s2] => [hi bye]
+:m2-impl [s1 s2] => [hi bye]
 
-    :m2-run -----------------------------------------------------------------------------
-    :m2-impl [s1 s2] => [one two]
-    (m2-impl (quote one) (quote two)) =>
-    (tst.demo.core/m2-fn 'one 'two)
-    :m2-fn [s1 s2] => [hi bye] "
+:m2-run -----------------------------------------------------------------------------
+:m2-impl [s1 s2] => [one two]
+(m2-impl (quote one) (quote two)) =>
+(tst.demo.core/m2-fn 'one 'two)
+:m2-fn [s1 s2] => [hi bye] "
 
+;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m2b-def)
   (defn m2b-fn
@@ -99,30 +100,33 @@
     (is= (m2b-impl '[one two])
       '(tst.demo.core/m2b-fn (quote one) (quote two)))
     (is= (m2b hi bye) "hi, bye")))
-    "
-    :m2b-def -----------------------------------------------------------------------------
-    :m2b args => (hi bye)
-    :m2b-impl [s1 s2] => [hi bye]
+"
+:m2b-def -----------------------------------------------------------------------------
+:m2b args => (hi bye)
+:m2b-impl [s1 s2] => [hi bye]
 
-    :m2b-run -----------------------------------------------------------------------------
-    :m2b-impl [s1 s2] => [one two]
-    (m2b-impl (quote [one two])) =>
-    (tst.demo.core/m2b-fn 'one 'two)
-    :m2b-fn [s1 s2] => [hi bye] "
+:m2b-run -----------------------------------------------------------------------------
+:m2b-impl [s1 s2] => [one two]
+(m2b-impl (quote [one two])) =>
+(tst.demo.core/m2b-fn 'one 'two)
+:m2b-fn [s1 s2] => [hi bye] "
 
+;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m2c-def)
   (defn m2c-fn
-    [s1 s2]
-    ; (spyx :m2c-fn [s1 s2])
-    (assert (every? symbol? [s1 s2]))
-    (str (sym->str s1) ", " (sym->str s2)))
+    [args]
+    (assert (every? symbol? args))
+    (let [[s1 s2] args]
+      ; (spyx :m2c-fn [s1 s2])
+      (assert (every? symbol? [s1 s2]))
+      (str (sym->str s1) ", " (sym->str s2))))
 
   (defn m2c-impl
     [args]
     ; (spyx :m2c-impl args)
     (assert (every? symbol? args))
-    `(apply m2c-fn (quote ~args)))
+    `(m2c-fn (quote ~args)))
 
   (defmacro m2c
     "Convert a symbol to a string"
@@ -134,17 +138,18 @@
   (dotest
     ; (sep :m2c-run)
     (is= (m2c-impl '[one two])
-      '(clojure.core/apply tst.demo.core/m2c-fn '[one two]))
+      '(tst.demo.core/m2c-fn '[one two]))
     (is= (m2c hi bye) "hi, bye")))
-    "
-    :m2c-def -----------------------------------------------------------------------------
-    :m2c args => (hi bye)
-    :m2c-impl args => (hi bye)
+"
+:m2c-def -----------------------------------------------------------------------------
+:m2c args => (hi bye)
+:m2c-impl args => (hi bye)
 
-    :m2c-run -----------------------------------------------------------------------------
-    :m2c-impl args => [one two]
-    :m2c-fn [s1 s2] => [hi bye] "
+:m2c-run -----------------------------------------------------------------------------
+:m2c-impl args => [one two]
+:m2c-fn [s1 s2] => [hi bye] "
 
+;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m2d-def)
   (defn m2d-fn
@@ -171,16 +176,17 @@
     (is= (m2d-impl '[one two])
       '(tst.demo.core/m2d-fn (quote one) (quote two)))
     (is= (m2d hi bye) "hi, bye")))
-    "
-    :m2d-def -----------------------------------------------------------------------------
-    :m2d args => (hi bye)
-    :m2d-impl [a b] => [hi bye]
+"
+:m2d-def -----------------------------------------------------------------------------
+:m2d args => (hi bye)
+:m2d-impl [a b] => [hi bye]
 
-    :m2d-run -----------------------------------------------------------------------------
-    :m2d-impl [a b] => [one two]
-    (m2d-impl (quote [one two])) => (tst.demo.core/m2d-fn (quote one) (quote two))
-    :m2d-fn [s1 s2] => [hi bye] "
+:m2d-run -----------------------------------------------------------------------------
+:m2d-impl [a b] => [one two]
+(m2d-impl (quote [one two])) => (tst.demo.core/m2d-fn (quote one) (quote two))
+:m2d-fn [s1 s2] => [hi bye] "
 
+;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m9a-def)
   (defn m9a-fn
@@ -194,7 +200,7 @@
   (defn m9a-impl
     [[pat & vals]]
     ; (spyx :m9a-impl [pat vals])
-    `(m9a-fn (quote ~pat) (quote ~vals) ))
+    `(m9a-fn (quote ~pat) (quote ~vals)))
 
   (defmacro m9a
     "Convert a symbol to a string"
@@ -208,16 +214,17 @@
     (is= (m9a-impl '[a b c d])
       '(tst.demo.core/m9a-fn (quote a) (quote (b c d))))
     (is= (m9a anda one two three) "anda+one, anda+two, anda+three")))
-    "
-    :m9a-def -----------------------------------------------------------------------------
-    :m9a args => (anda one two three)
-    :m9a-impl [pat vals] => [anda (one two three)]
+"
+:m9a-def -----------------------------------------------------------------------------
+:m9a args => (anda one two three)
+:m9a-impl [pat vals] => [anda (one two three)]
 
-    :m9a-run -----------------------------------------------------------------------------
-    :m9a-impl [pat vals] => [a (b c d)]
-    (m9a-impl (quote [a b c d])) => (tst.demo.core/m9a-fn (quote a) (quote (b c d)))
-    :m9a-fn [pat vals] => [anda (one two three)] "
+:m9a-run -----------------------------------------------------------------------------
+:m9a-impl [pat vals] => [a (b c d)]
+(m9a-impl (quote [a b c d])) => (tst.demo.core/m9a-fn (quote a) (quote (b c d)))
+:m9a-fn [pat vals] => [anda (one two three)] "
 
+;---------------------------------------------------------------------------------------------------
 (do
   ; (sep :m9b-def)
   (defn m9b-fn
@@ -234,7 +241,7 @@
     (assert (every? symbol? args))
     (let [[pat & vals] args]
       ; (spyx :m9b-impl [pat vals args])
-      `(m9b-fn (quote ~args) )))
+      `(m9b-fn (quote ~args))))
 
   (defmacro m9b
     "Convert a symbol to a string"
@@ -246,16 +253,61 @@
   (dotest
     ; (sep :m9b-run)
     (is= (m9b-impl '[a b c d])
-      '(tst.demo.core/m9b-fn (quote [a b c d])) )
+      '(tst.demo.core/m9b-fn (quote [a b c d])))
     (is= (m9b anda one two three) "anda+one, anda+two, anda+three")))
-    "
-    :m9b-def -----------------------------------------------------------------------------
-    :m9b args => (anda one two three)
-    :m9b-impl [pat vals args] => [anda (one two three) (anda one two three)]
+"
+:m9b-def -----------------------------------------------------------------------------
+:m9b args => (anda one two three)
+:m9b-impl [pat vals args] => [anda (one two three) (anda one two three)]
 
-    :m9b-run -----------------------------------------------------------------------------
-    :m9b-impl [pat vals args] => [a (b c d) [a b c d]]
-    (m9b-impl (quote [a b c d])) => (tst.demo.core/m9b-fn (quote [a b c d]))
-    :m9b-fn [pat vals] => [anda (one two three)] "
+:m9b-run -----------------------------------------------------------------------------
+:m9b-impl [pat vals args] => [a (b c d) [a b c d]]
+(m9b-impl (quote [a b c d])) => (tst.demo.core/m9b-fn (quote [a b c d]))
+:m9b-fn [pat vals] => [anda (one two three)] "
 
 
+; o  ; #todo ***** causes bad compiler error *****
+
+
+;---------------------------------------------------------------------------------------------------
+(do
+  ; (sep :m9c-def)
+  (defn m9c-fn
+    [pat vals]
+    ; (spyx :m9c-fn [pat vals])
+    (str/join
+      (interpose ", "
+        (for [val vals]
+          (str (sym->str pat) "+" (sym->str val))))))
+
+  (defn m9c-impl
+    [args]
+    ; (spyx :m9c-impl args)
+    (assert (every? symbol? args))
+    (let [[pat & vals] args]
+      ; (spyx :m9c-impl [pat vals])
+      `(m9c-fn (quote ~pat) (quote ~vals))))
+
+  (defmacro m9c
+    "Convert a symbol to a string"
+    [& args]
+    ; (spyx :m9c args)
+    (assert (every? symbol? args))
+    (m9c-impl args))
+
+  (dotest
+    ; (sep :m9c-run)
+    (is= (m9c-impl (quote [a b c d]))
+      '(tst.demo.core/m9c-fn (quote a) (quote [b c d])))
+
+    (is= (m9c anda one two three) "anda+one, anda+two, anda+three")))
+"
+:m9c-def -----------------------------------------------------------------------------
+:m9c args => (anda one two three)
+:m9c-impl args => (anda one two three)
+:m9c-impl [pat vals] => [anda (one two three)]
+
+:m9c-run -----------------------------------------------------------------------------
+:m9c-impl args => [a b c d]
+:m9c-impl [pat vals] => [a (b c d)]
+:m9c-fn [pat vals] => [anda (one two three)] "
